@@ -12,21 +12,19 @@ type Client struct {
 }
 
 type Options struct {
-	BasePath         string
-	ServerName       string
-	Addr             []string
-	Group            string
-	Timeout          time.Duration
-	FailureThreshold uint64
-	Window           time.Duration
-	EnableBreaker    bool
+	BasePath   string
+	ServerName string
+	Addr       []string
+	Group      string
+	Timeout    time.Duration
+	Breaker    func() client.Breaker
 }
 
 var DefaultOptions = Options{
-	Timeout:          time.Second,
-	FailureThreshold: 5,
-	Window:           30 * time.Second,
-	EnableBreaker:    true,
+	Timeout: time.Second,
+	Breaker: func() client.Breaker {
+		return client.NewConsecCircuitBreaker(5, 30*time.Second)
+	},
 }
 
 func NewClient(options Options) (c *Client, err error) {

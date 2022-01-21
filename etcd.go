@@ -13,10 +13,8 @@ func (c *Client) newRpcXClient() (cli client.XClient, err error) {
 		return nil, err
 	}
 	option := client.DefaultOption
-	if c.Options.EnableBreaker {
-		option.GenBreaker = func() client.Breaker {
-			return client.NewConsecCircuitBreaker(c.Options.FailureThreshold, c.Options.Window)
-		}
+	if c.Options.Breaker != nil {
+		option.GenBreaker = c.Options.Breaker
 	}
 	option.Group = c.Options.Group
 	cli = client.NewXClient(c.Options.ServerName, client.Failtry, client.RandomSelect, d, option)
