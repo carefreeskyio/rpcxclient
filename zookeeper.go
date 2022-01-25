@@ -7,16 +7,16 @@ import (
 )
 
 func (c *Client) newRpcXClient() (cli client.XClient, err error) {
-	d, err := client.NewZookeeperDiscovery(c.Options.BasePath, c.Options.ServerName, c.Options.Addr, false, nil)
+	d, err := client.NewZookeeperDiscovery(c.CustomOptions.BasePath, c.CustomOptions.ServerName, c.BaseOptions.RegistryOption.Addr, false, nil)
 	if err != nil {
 		return nil, err
 	}
 	option := client.DefaultOption
-	if c.Options.Breaker != nil {
-		option.GenBreaker = c.Options.Breaker
+	if c.CustomOptions.Breaker != nil {
+		option.GenBreaker = c.CustomOptions.Breaker
 	}
-	option.Group = c.Options.Group
-	cli = client.NewXClient(c.Options.ServerName, client.Failtry, client.RandomSelect, d, option)
+	option.Group = c.BaseOptions.RegistryOption.Group
+	cli = client.NewXClient(c.CustomOptions.ServerName, client.Failtry, client.RandomSelect, d, option)
 
 	return cli, nil
 }

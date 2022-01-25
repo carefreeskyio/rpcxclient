@@ -2,34 +2,58 @@ package rpcxclient
 
 import (
 	"context"
+	"github.com/carefreex-io/config"
 	"github.com/smallnest/rpcx/client"
 	"time"
 )
 
 type Client struct {
-	XClient client.XClient
-	Options Options
+	XClient       client.XClient
+	BaseOptions   *BaseOptions
+	CustomOptions *CustomOptions
 }
 
-type Options struct {
+type BaseOptions struct {
+	RegistryOption RegistryOption
+	Timeout        time.Duration
+}
+
+type RegistryOption struct {
+	Addr  []string
+	Group string
+}
+
+type CustomOptions struct {
 	BasePath   string
 	ServerName string
-	Addr       []string
-	Group      string
-	Timeout    time.Duration
 	Breaker    func() client.Breaker
 }
 
-var DefaultOptions = Options{
-	Timeout: time.Second,
-	Breaker: func() client.Breaker {
-		return client.NewConsecCircuitBreaker(5, 30*time.Second)
-	},
+var (
+	baseOptions          *BaseOptions
+	DefaultCustomOptions = &CustomOptions{
+		Breaker: func() client.Breaker {
+			return client.NewConsecCircuitBreaker(3, 30*time.Second)
+		},
+	}
+)
+
+func initBaseOptions() {
+	baseOptions = &BaseOptions{
+		RegistryOption: RegistryOption{
+			Addr:  config.GetStringSlice("Registry.Addr"),
+			Group: config.GetString("Registry.Group"),
+		},
+		Timeout: config.GetDuration("Rpc.WithTimout") * time.Second,
+	}
 }
 
-func NewClient(options Options) (c *Client, err error) {
+func NewClient() (c *Client, err error) {
+	initBaseOptions()
+
 	c = &Client{
-		Options: options,
+		BaseOptions:   baseOptions,
+		CustomOptions: DefaultCustomOptions,
 	}
 	xClient, err := c.newRpcXClient()
 	c.XClient = xClient
@@ -38,14 +62,14 @@ func NewClient(options Options) (c *Client, err error) {
 }
 
 func (c *Client) Call(ctx context.Context, method string, request interface{}, response interface{}) (err error) {
-	if c.Options.Timeout > 0 {
+	if c.BaseOptions.Timeout > 0 {
 		return c.callWithTimeout(ctx, method, request, response)
 	}
 	return c.XClient.Call(ctx, method, request, response)
 }
 
 func (c *Client) callWithTimeout(ctx context.Context, method string, request interface{}, response interface{}) (err error) {
-	ctx, cancel := context.WithTimeout(ctx, c.Options.Timeout)
+	ctx, cancel := context.WithTimeout(ctx, c.BaseOptions.Timeout)
 	defer cancel()
 
 	return c.XClient.Call(ctx, method, request, response)
