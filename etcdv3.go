@@ -6,16 +6,16 @@ import (
 )
 
 func (c *Client) newRpcXClient() (cli client.XClient, err error) {
-	d, err := etcdClient.NewEtcdV3Discovery(c.CustomOptions.BasePath, c.CustomOptions.ServerName, c.BaseOptions.RegistryOption.Addr, false, nil)
+	d, err := etcdClient.NewEtcdV3Discovery(c.Options.RegistryOption.BasePath, c.Options.RegistryOption.ServerName, c.Options.RegistryOption.Addr, false, nil)
 	if err != nil {
 		return nil, err
 	}
 	option := client.DefaultOption
-	if c.CustomOptions.Breaker != nil {
-		option.GenBreaker = c.CustomOptions.Breaker
+	if c.Options.Breaker != nil {
+		option.GenBreaker = c.Options.Breaker
 	}
-	option.Group = c.BaseOptions.RegistryOption.Group
-	cli = client.NewXClient(c.CustomOptions.ServerName, client.Failtry, client.RandomSelect, d, option)
+	option.Group = c.Options.RegistryOption.Group
+	cli = client.NewXClient(c.Options.RegistryOption.ServerName, client.Failtry, client.RandomSelect, d, option)
 
 	return cli, nil
 }
