@@ -7,7 +7,7 @@ import (
 )
 
 func (c *Client) newRpcXClient() (cli client.XClient, err error) {
-	d, err := client.NewZookeeperDiscovery(c.Options.RegistryOption.BasePath, c.Options.RegistryOption.ServerName, c.Options.RegistryOption.Addr, false, nil)
+	d, err := client.NewZookeeperDiscovery(c.Options.RegistryOption.BasePath, c.Options.RegistryOption.ServerName, c.Options.RegistryOption.Addr, nil)
 	if err != nil {
 		return nil, err
 	}
