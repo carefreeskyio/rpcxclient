@@ -1,3 +1,5 @@
+//+build etcdV3
+
 package rpcxclient
 
 import (
